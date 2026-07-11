@@ -63,6 +63,53 @@
 </style>
 </head>
 <body>
+<script>
+// ---------- บังคับเปิดเบราว์เซอร์จริง (กันเปิดค้างใน LINE/FB/IG in-app browser) ----------
+(function(){
+  function ua(){ return navigator.userAgent || navigator.vendor || window.opera || ''; }
+  function isInApp(){
+    const u = ua();
+    return /Line\//i.test(u) || /FBAN|FBAV|FB_IAB/i.test(u) || /Instagram/i.test(u) || /MicroMessenger/i.test(u) || /Twitter/i.test(u);
+  }
+  function isAndroid(){ return /Android/i.test(ua()); }
+  function isIOS(){ return /iPhone|iPad|iPod/i.test(ua()); }
+
+  if(!isInApp()) return;
+
+  if(isAndroid()){
+    // แปลง URL ปัจจุบันเป็น intent:// เพื่อบังคับเปิดผ่าน Chrome โดยอัตโนมัติ
+    const stripped = window.location.href.replace(/^https?:\/\//,'');
+    const intentUrl = 'intent://' + stripped + '#Intent;scheme=https;package=com.android.chrome;end';
+    window.location.href = intentUrl;
+    return;
+  }
+
+  if(isIOS()){
+    // iOS ของ Apple ไม่อนุญาตให้เว็บสั่งเปิดเบราว์เซอร์อื่นอัตโนมัติได้ 100%
+    // จึงลองเปิด Chrome ผ่าน scheme ก่อน ถ้าไม่มี Chrome จะไม่มีอะไรเกิดขึ้น แล้วโชว์คำแนะนำสำรอง
+    const httpsStripped = window.location.href.replace(/^https:\/\//,'');
+    window.location.href = 'googlechromes://' + httpsStripped;
+
+    const show = function(){
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:#0b2545;color:#fff;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center;font-family:sans-serif;';
+      overlay.innerHTML = `
+        <div style="font-size:44px;margin-bottom:16px;">↗️</div>
+        <div style="font-size:19px;font-weight:700;margin-bottom:10px;">เปิดในเบราว์เซอร์เพื่อใช้งานได้เต็มรูปแบบ</div>
+        <div style="font-size:15px;opacity:.85;margin-bottom:24px;line-height:1.6;">แตะปุ่ม <b>•••</b> มุมขวาบน แล้วเลือก<br><b>"เปิดใน Safari"</b> หรือ "Open in Browser"</div>
+        <button id="copyLinkBtn" style="background:#1662c4;color:#fff;border:none;padding:14px 26px;border-radius:8px;font-size:16px;font-weight:700;">คัดลอกลิงก์</button>
+        <button id="continueAnyway" style="margin-top:16px;background:transparent;color:#9db8dd;border:none;font-size:13px;text-decoration:underline;">ใช้งานในนี้ต่อไป</button>`;
+      document.body.appendChild(overlay);
+      document.getElementById('copyLinkBtn').onclick = function(){
+        navigator.clipboard.writeText(window.location.href).then(()=>{ this.textContent = 'คัดลอกแล้ว ✓'; });
+      };
+      document.getElementById('continueAnyway').onclick = function(){ overlay.remove(); };
+    };
+    if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', show); } else { show(); }
+  }
+})();
+</script>
+
 
 <header>
   <h1>360° Sales Performance System 2026</h1>
