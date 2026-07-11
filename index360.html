@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>360° Sales Performance System 2026</title>
+<style>
+  :root{
+    --navy:#0b2545; --blue:#1662c4; --red:#d0021b; --gray:#f4f6f9;
+    --A:#1a9e5c; --B:#5cb85c; --C:#f0ad4e; --D:#e8722c; --E:#d0021b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Segoe UI','TH Sarabun New',sans-serif;background:var(--gray);color:#1c1c1c;}
+  header{background:var(--navy);color:#fff;padding:16px 20px;text-align:center;}
+  header h1{margin:0;font-size:19px;}
+  header p{margin:4px 0 0;font-size:12px;opacity:.8;}
+  .wrap{max-width:640px;margin:0 auto;padding:16px;}
+  .card{background:#fff;border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  h2{font-size:16px;margin:0 0 12px;color:var(--navy);}
+  h3{font-size:14px;margin:16px 0 8px;color:var(--blue);border-bottom:2px solid var(--blue);padding-bottom:4px;}
+  label{display:block;font-size:13px;margin:10px 0 4px;color:#444;}
+  select,input[type=text],textarea{width:100%;padding:10px;border:1px solid #ccd3dc;border-radius:8px;font-size:15px;}
+  button{cursor:pointer;border:none;border-radius:8px;font-size:15px;padding:12px;font-weight:600;}
+  .btn-primary{background:var(--blue);color:#fff;width:100%;margin-top:10px;}
+  .btn-primary:disabled{background:#a9c3e2;}
+  .btn-outline{background:#fff;border:1px solid var(--blue);color:var(--blue);}
+  .btn-danger{background:var(--red);color:#fff;}
+  .role-select{display:flex;gap:10px;margin-top:10px;}
+  .role-select button{flex:1;padding:20px 10px;background:#fff;border:2px solid #dfe6ee;border-radius:12px;color:var(--navy);}
+  .role-select button.active{border-color:var(--blue);background:#eaf2ff;}
+  .crit{border:1px solid #e3e8ee;border-radius:10px;padding:10px 12px;margin-bottom:8px;}
+  .crit .title{font-size:13.5px;font-weight:600;margin-bottom:6px;}
+  .scale{display:flex;gap:6px;}
+  .scale button{flex:1;background:#f0f2f5;color:#555;padding:8px 4px;font-size:13px;border-radius:6px;font-weight:700;}
+  .scale button.sel{background:var(--blue);color:#fff;}
+  .desc{font-size:11.5px;color:#888;margin-top:6px;line-height:1.4;min-height:14px;}
+  .catbar{display:flex;justify-content:space-between;align-items:center;background:#eef3fb;padding:6px 10px;border-radius:8px;margin:14px 0 6px;font-size:12.5px;color:var(--navy);font-weight:700;}
+  .totalbar{position:sticky;bottom:0;background:#fff;border-top:2px solid var(--blue);padding:10px 16px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 -2px 6px rgba(0,0,0,.06);}
+  .totalbar .num{font-size:22px;font-weight:800;color:var(--blue);}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;color:#fff;font-size:12px;font-weight:700;}
+  .grade-A{background:var(--A);} .grade-B{background:var(--B);} .grade-C{background:var(--C);}
+  .grade-D{background:var(--D);} .grade-E{background:var(--E);}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th,td{padding:6px 8px;border-bottom:1px solid #eee;text-align:left;}
+  th{background:#f4f6f9;position:sticky;top:0;}
+  .row-link{cursor:pointer;}
+  .small{font-size:12px;color:#888;}
+  .center{text-align:center;}
+  .hidden{display:none !important;}
+  .toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:999;box-shadow:0 3px 10px rgba(0,0,0,.2);}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:998;padding:20px;}
+  .modal{background:#fff;border-radius:12px;padding:20px;max-width:400px;width:100%;}
+  .summarybox{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+  .stat{background:#f4f6f9;border-radius:8px;padding:10px;text-align:center;}
+  .stat .v{font-size:20px;font-weight:800;color:var(--navy);}
+  .stat .l{font-size:11px;color:#888;}
+  .filters{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+  .filters select{flex:1;min-width:110px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>360° Sales Performance System 2026</h1>
+  <p>Rayong Isuzu Sales — แบบประเมินพฤติกรรมการขาย</p>
+</header>
+
+<div class="wrap" id="app"></div>
+
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbzNNrxEbt_RLO2a3kyjhtIpLBMjBrMB1wyvTbBLLuebPE5dYkViLeCTAmpM5rvc_Dxi/exec';
+
+// ---------- ข้อมูลเกณฑ์การให้คะแนน 21 ข้อ ----------
+const CRITERIA = [
+  {cat:'Sales Process', key:'sp1', label:'การสำรวจความต้องการลูกค้า', d:{4:'วิเคราะห์ครบ ถามถูกประเด็น',3:'ถามส่วนใหญ่',2:'ถามเบื้องต้น',1:'ข้ามขั้นตอน'}},
+  {cat:'Sales Process', key:'sp2', label:'การนำเสนอสินค้า/Test Drive', d:{4:'นำเสนอโดนใจ+TD ทุกราย',3:'นำเสนอดี',2:'นำเสนอพื้นฐาน',1:'ขาด TD/นำเสนอไม่ครบ'}},
+  {cat:'Sales Process', key:'sp3', label:'การเจรจาและปิดการขาย', d:{4:'ปิดได้เป็นระบบ จัดการข้อโต้แย้งได้',3:'ปิดได้ส่วนใหญ่',2:'ปิดได้บ้าง',1:'ไม่ปิด'}},
+  {cat:'Sales Process', key:'sp4', label:'ความรู้สินค้าและคู่แข่ง', d:{4:'รู้ลึก เปรียบเทียบคู่แข่งได้ชัด',3:'รู้ดี',2:'รู้พื้นฐาน',1:'ขาดความรู้'}},
+
+  {cat:'Follow-up', key:'fu1', label:'การวางแผนและบริหารเวลา', d:{4:'วางแผนเป็นระบบ ติดตามได้',3:'วางแผนได้',2:'วางแผนบ้าง',1:'ไม่วางแผน'}},
+  {cat:'Follow-up', key:'fu2', label:'ความถี่และความสม่ำเสมอในการ Follow-up', d:{4:'Follow-up ตาม schedule ทุกราย',3:'ส่วนใหญ่ตามได้',2:'Follow-up บางราย',1:'ไม่ Follow-up'}},
+  {cat:'Follow-up', key:'fu3', label:'คุณภาพการสื่อสารกับลูกค้า', d:{4:'สื่อสารชัดเจน สร้าง trust ได้ดี',3:'สื่อสารดี',2:'สื่อสารพื้นฐาน',1:'สื่อสารไม่ดี'}},
+  {cat:'Follow-up', key:'fu4', label:'การจัดการลูกค้าที่ไม่ตัดสินใจ', d:{4:'มีเทคนิคชัด กระตุ้นได้',3:'จัดการได้ส่วนใหญ่',2:'จัดการได้บ้าง',1:'ปล่อยทิ้ง'}},
+  {cat:'Follow-up', key:'fu5', label:'การดูแลลูกค้าหลังส่งมอบ (Retention)', d:{4:'ดูแลต่อเนื่อง สร้าง referral',3:'ดูแลดี',2:'ดูแลพื้นฐาน',1:'ไม่ดูแล'}},
+
+  {cat:'CRM/เอกสาร', key:'crm1', label:'ความสมบูรณ์ของข้อมูลใน DMS/CRM', d:{4:'บันทึกครบ ถูกต้อง real-time',3:'บันทึกส่วนใหญ่',2:'บันทึกบ้าง',1:'ไม่บันทึก'}},
+  {cat:'CRM/เอกสาร', key:'crm2', label:'ความทันเวลาของการบันทึกข้อมูล', d:{4:'บันทึกวันนั้น',3:'บันทึก 1-2 วัน',2:'บันทึกล่าช้า',1:'ไม่บันทึก/บันทึกผิด'}},
+  {cat:'CRM/เอกสาร', key:'crm3', label:'ความถูกต้องของเอกสารการขาย', d:{4:'ผิดพลาด 0%',3:'ผิดน้อยมาก',2:'ผิดบ้าง ต้องแก้',1:'ผิดบ่อย ต้องตรวจสอบทุกครั้ง'}},
+  {cat:'CRM/เอกสาร', key:'crm4', label:'การใช้ข้อมูลเพื่อวางแผนการขาย', d:{4:'ใช้ข้อมูลนำการตัดสินใจ',3:'ใช้บ้าง',2:'ใช้น้อย',1:'ไม่ใช้ข้อมูลเลย'}},
+
+  {cat:'Teamwork', key:'tw1', label:'การสนับสนุนและแบ่งปันความรู้ในทีม', d:{4:'แบ่งปันเชิงรุก เป็น mentor ได้',3:'แบ่งปันเมื่อถูกถาม',2:'แบ่งปันบ้าง',1:'ไม่แบ่งปัน'}},
+  {cat:'Teamwork', key:'tw2', label:'การรับและให้ Feedback อย่างสร้างสรรค์', d:{4:'รับ-ให้ feedback ได้ดี ไม่ defensive',3:'รับได้ส่วนใหญ่',2:'รับได้แต่ไม่นำไปใช้',1:'ปฏิเสธ feedback'}},
+  {cat:'Teamwork', key:'tw3', label:'การปฏิบัติตาม Process และ Culture องค์กร', d:{4:'เป็นแบบอย่าง',3:'ปฏิบัติได้ดี',2:'ปฏิบัติพื้นฐาน',1:'ขัดกับ culture'}},
+  {cat:'Teamwork', key:'tw4', label:'การมีส่วนร่วมใน Meeting และ Activity ทีม', d:{4:'มีส่วนร่วมเชิงรุก นำเสนอไอเดีย',3:'มีส่วนร่วมดี',2:'มีส่วนร่วมบ้าง',1:'เฉยเมย'}},
+
+  {cat:'Self Development', key:'sd1', label:'การเรียนรู้จากการฝึกอบรม/e-Learning', d:{4:'เรียนครบ+นำมาใช้จริง',3:'เรียนครบ',2:'เรียนบางส่วน',1:'ไม่เรียน/ไม่ผ่าน'}},
+  {cat:'Self Development', key:'sd2', label:'การพัฒนาตนเองนอกหลักสูตร', d:{4:'ค้นคว้าด้วยตนเอง มีหลักฐาน',3:'พัฒนาบ้าง',2:'พัฒนาเมื่อถูกกดดัน',1:'ไม่พัฒนา'}},
+  {cat:'Self Development', key:'sd3', label:'การตั้งเป้าหมายและติดตาม Personal KPI', d:{4:'มีเป้าชัด ติดตามสม่ำเสมอ',3:'มีเป้า ติดตามบ้าง',2:'มีเป้าแต่ไม่ติดตาม',1:'ไม่มีเป้า'}},
+  {cat:'Self Development', key:'sd4', label:'ทัศนคติและ Growth Mindset', d:{4:'คิดบวก รับความท้าทาย',3:'ส่วนใหญ่คิดบวก',2:'คิดบวกบ้าง',1:'ต่อต้านการเปลี่ยนแปลง'}},
+];
+const MAX_RAW = CRITERIA.length * 4; // 84
+
+function gradeOf(score20){
+  if(score20>=18) return {g:'A',label:'A — ดีเยี่ยม'};
+  if(score20>=14) return {g:'B',label:'B — ดี'};
+  if(score20>=10) return {g:'C',label:'C — พอใช้'};
+  if(score20>=6)  return {g:'D',label:'D — ต้องพัฒนา'};
+  return {g:'E',label:'E — วิกฤต'};
+}
+function currentQuarter(){
+  const d=new Date(); const q=Math.floor(d.getMonth()/3)+1; return 'Q'+q+'-'+d.getFullYear();
+}
+function quarterOptions(){
+  const d=new Date(); const y=d.getFullYear(); const cq=Math.floor(d.getMonth()/3)+1;
+  const opts=[];
+  for(let yy=y; yy>=y-1; yy--){
+    for(let q=4; q>=1; q--){
+      if(yy===y && q>cq) continue;
+      opts.push('Q'+q+'-'+yy);
+    }
+  }
+  return opts;
+}
+
+async function gasGet(params){
+  const qs = new URLSearchParams(params).toString();
+  const res = await fetch(API_URL + '?' + qs);
+  return res.json();
+}
+
+function toast(msg){
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(), 2600);
+}
+
+// ---------------- STATE ----------------
+let state = {
+  screen: 'home',
+  managers: [],
+  manager: null,
+  branch: null,
+  staffList: [],
+  staff: null,
+  quarter: currentQuarter(),
+  scores: {},
+  notes: '',
+  overwrite: false,
+};
+
+const app = document.getElementById('app');
+
+function render(){
+  if(state.screen==='home') return renderHome();
+  if(state.screen==='mgrLogin') return renderMgrLogin();
+  if(state.screen==='pickStaff') return renderPickStaff();
+  if(state.screen==='form') return renderForm();
+  if(state.screen==='done') return renderDone();
+  if(state.screen==='adminPin') return renderAdminPin();
+  if(state.screen==='dashboard') return renderDashboard();
+}
+
+function renderHome(){
+  app.innerHTML = `
+    <div class="card">
+      <h2>เลือกบทบาทของคุณ</h2>
+      <div class="role-select">
+        <button onclick="goto('mgrLogin')">👤<br>ผู้จัดการ<br><span class="small">ประเมิน SC</span></button>
+        <button onclick="goto('adminPin')">🔑<br>บดินทร์<br><span class="small">Dashboard</span></button>
+      </div>
+    </div>`;
+}
+
+async function renderMgrLogin(){
+  app.innerHTML = `<div class="card"><h2>เข้าสู่ระบบผู้จัดการ</h2><p class="small">กำลังโหลดรายชื่อ...</p></div>`;
+  if(state.managers.length===0){
+    const res = await gasGet({action:'getManagers'});
+    state.managers = Array.isArray(res)? res : [];
+  }
+  const opts = state.managers.map(m=>`<option value="${m.name}">${m.name}</option>`).join('');
+  app.innerHTML = `
+    <div class="card">
+      <h2>เข้าสู่ระบบผู้จัดการ</h2>
+      <label>ชื่อผู้จัดการ</label>
+      <select id="mgrSel"><option value="">-- เลือกชื่อ --</option>${opts}</select>
+      <label>สาขา</label>
+      <select id="branchSel"><option value="">-- เลือกผู้จัดการก่อน --</option></select>
+      <label>ไตรมาสที่ประเมิน</label>
+      <select id="qSel">${quarterOptions().map(q=>`<option value="${q}" ${q===state.quarter?'selected':''}>${q}</option>`).join('')}</select>
+      <button class="btn-primary" id="goStaffBtn" disabled onclick="confirmMgr()">ถัดไป</button>
+      <button class="btn-outline" style="width:100%;margin-top:8px" onclick="goto('home')">ย้อนกลับ</button>
+    </div>`;
+  document.getElementById('mgrSel').onchange = (e)=>{
+    const m = state.managers.find(x=>x.name===e.target.value);
+    const bs = document.getElementById('branchSel');
+    if(m){
+      bs.innerHTML = m.branches.map(b=>`<option value="${b}">${b}</option>`).join('');
+      document.getElementById('goStaffBtn').disabled = false;
+    } else {
+      bs.innerHTML = '<option value="">-- เลือกผู้จัดการก่อน --</option>';
+      document.getElementById('goStaffBtn').disabled = true;
+    }
+  };
+}
+function confirmMgr(){
+  state.manager = document.getElementById('mgrSel').value;
+  state.branch = document.getElementById('branchSel').value;
+  state.quarter = document.getElementById('qSel').value;
+  if(!state.manager || !state.branch){ toast('กรุณาเลือกให้ครบ'); return; }
+  goto('pickStaff');
+}
+
+async function renderPickStaff(){
+  app.innerHTML = `<div class="card"><h2>เลือกพนักงานที่จะประเมิน</h2><p class="small">กำลังโหลด...</p></div>`;
+  const res = await gasGet({action:'getStaffByBranch', branch: state.branch});
+  state.staffList = Array.isArray(res)? res: [];
+  const opts = state.staffList.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  app.innerHTML = `
+    <div class="card">
+      <h2>เลือกพนักงาน (สาขา: ${state.branch})</h2>
+      <p class="small">ผู้ประเมิน: ${state.manager} | ไตรมาส: ${state.quarter}</p>
+      <label>พนักงาน</label>
+      <select id="staffSel"><option value="">-- เลือกชื่อ --</option>${opts}</select>
+      <button class="btn-primary" onclick="pickStaff()">เริ่มประเมิน</button>
+      <button class="btn-outline" style="width:100%;margin-top:8px" onclick="goto('mgrLogin')">ย้อนกลับ</button>
+    </div>`;
+}
+
+async function pickStaff(){
+  const id = document.getElementById('staffSel').value;
+  if(!id){ toast('กรุณาเลือกพนักงาน'); return; }
+  state.staff = state.staffList.find(s=>s.id===id);
+  state.scores = {};
+  state.notes = '';
+  state.overwrite = false;
+
+  const check = await gasGet({action:'checkExisting', staff_id:id, quarter: state.quarter});
+  if(check.exists){
+    const d = check.data;
+    const proceed = confirm(`${state.staff.name} ถูกประเมินในไตรมาส ${state.quarter} แล้ว โดย ${d.evaluator}\nคะแนน: ${d.score_20}/20 (${d.grade})\n\nกด OK เพื่อแก้ไขข้อมูลเดิม หรือ Cancel เพื่อกลับไปเลือกคนอื่น`);
+    if(!proceed){ return; }
+    state.overwrite = true;
+    CRITERIA.forEach(c=> state.scores[c.key] = Number(d[c.key])||0 );
+    state.notes = d.notes || '';
+  }
+  goto('form');
+}
+
+function renderForm(){
+  let catCurrent = '';
+  const rows = CRITERIA.map(c=>{
+    let catHeader = '';
+    if(c.cat !== catCurrent){
+      catCurrent = c.cat;
+      catHeader = `<div class="catbar"><span>${c.cat}</span></div>`;
+    }
+    const sel = state.scores[c.key];
+    const btns = [4,3,2,1].map(v=>`<button class="${sel===v?'sel':''}" onclick="setScore('${c.key}',${v})">${v}</button>`).join('');
+    const descText = sel? c.d[sel] : '';
+    return `${catHeader}
+      <div class="crit">
+        <div class="title">${c.label}</div>
+        <div class="scale">${btns}</div>
+        <div class="desc" id="desc_${c.key}">${descText}</div>
+      </div>`;
+  }).join('');
+
+  const raw = CRITERIA.reduce((sum,c)=> sum + (state.scores[c.key]||0), 0);
+  const score20 = Math.round((raw/MAX_RAW)*20*100)/100;
+  const answered = CRITERIA.filter(c=>state.scores[c.key]).length;
+
+  app.innerHTML = `
+    <div class="card">
+      <h2>${state.staff.name}</h2>
+      <p class="small">ผู้ประเมิน: ${state.manager} | สาขา: ${state.branch} | ไตรมาส: ${state.quarter} ${state.overwrite? '<span class="badge grade-C">แก้ไขข้อมูลเดิม</span>':''}</p>
+      ${rows}
+      <label>หมายเหตุเพิ่มเติม (ถ้ามี)</label>
+      <textarea id="notesInput" rows="3">${state.notes}</textarea>
+    </div>
+    <div class="totalbar">
+      <div><span class="small">ตอบแล้ว ${answered}/${CRITERIA.length} ข้อ</span><br><span class="num">${score20}/20</span></div>
+      <button class="btn-primary" style="width:auto;padding:12px 22px" ${answered<CRITERIA.length?'disabled':''} onclick="submitForm()">ส่งผลประเมิน</button>
+    </div>`;
+  document.getElementById('notesInput').oninput = (e)=> state.notes = e.target.value;
+}
+
+function setScore(key, val){
+  state.scores[key] = val;
+  render();
+}
+
+async function submitForm(){
+  const params = {
+    action:'submitEvaluation',
+    evaluator: state.manager,
+    staff_id: state.staff.id,
+    quarter: state.quarter,
+    notes: state.notes,
+    overwrite: state.overwrite ? 'true':'false',
+  };
+  CRITERIA.forEach(c=> params[c.key] = state.scores[c.key]);
+
+  const res = await gasGet(params);
+  if(res.warning === 'duplicate'){
+    toast('มีข้อมูลซ้ำ กรุณาลองใหม่');
+    return;
+  }
+  if(res.error){ toast('เกิดข้อผิดพลาด: '+res.error); return; }
+  state.result = res;
+  goto('done');
+}
+
+function renderDone(){
+  const g = gradeOf(state.result.score20);
+  app.innerHTML = `
+    <div class="card center">
+      <h2>บันทึกผลประเมินเรียบร้อย ✅</h2>
+      <p>${state.staff.name}</p>
+      <p style="font-size:32px;font-weight:800;color:var(--navy)">${state.result.score20}/20</p>
+      <span class="badge grade-${g.g}">${g.label}</span>
+      <button class="btn-primary" style="margin-top:20px" onclick="resetToMgr()">ประเมินคนถัดไป</button>
+      <button class="btn-outline" style="width:100%;margin-top:8px" onclick="goto('home')">กลับหน้าแรก</button>
+    </div>`;
+}
+function resetToMgr(){
+  state.staff = null; state.scores = {}; state.notes=''; state.overwrite=false;
+  goto('pickStaff');
+}
+
+function renderAdminPin(){
+  app.innerHTML = `
+    <div class="card">
+      <h2>เข้าสู่ Dashboard (บดินทร์)</h2>
+      <label>PIN</label>
+      <input type="text" id="pinInput" placeholder="กรอกรหัส PIN" inputmode="numeric">
+      <button class="btn-primary" onclick="loginAdmin()">เข้าสู่ระบบ</button>
+      <button class="btn-outline" style="width:100%;margin-top:8px" onclick="goto('home')">ย้อนกลับ</button>
+    </div>`;
+}
+async function loginAdmin(){
+  const pin = document.getElementById('pinInput').value;
+  const res = await gasGet({action:'getDashboard', pin});
+  if(res.error){ toast(res.error); return; }
+  state.dashData = res;
+  goto('dashboard');
+}
+
+function renderDashboard(){
+  const rows = state.dashData.rows || [];
+  const quarters = [...new Set(rows.map(r=>r.quarter))].sort().reverse();
+  const branches = [...new Set(rows.map(r=>r.branch))].sort();
+
+  const fq = state._fq || 'ALL';
+  const fb = state._fb || 'ALL';
+  let filtered = rows.filter(r => (fq==='ALL'||r.quarter===fq) && (fb==='ALL'||r.branch===fb));
+  filtered.sort((a,b)=> a.score_20 - b.score_20);
+
+  const avg = filtered.length? (filtered.reduce((s,r)=>s+Number(r.score_20),0)/filtered.length) : 0;
+  const critical = filtered.filter(r=>r.score_20 < 6).length;
+
+  const catAvg = {};
+  ['Sales Process','Follow-up','CRM/เอกสาร','Teamwork','Self Development'].forEach(cat=>{
+    const keys = CRITERIA.filter(c=>c.cat===cat).map(c=>c.key);
+    let sum=0,cnt=0;
+    filtered.forEach(r=> keys.forEach(k=>{ if(r[k]!==undefined && r[k]!==''){ sum+=Number(r[k]); cnt++; } }));
+    catAvg[cat] = cnt? (sum/cnt).toFixed(2) : '-';
+  });
+
+  const tableRows = filtered.map(r=>{
+    const g = gradeOf(Number(r.score_20));
+    return `<tr>
+      <td>${r.staff_name}</td>
+      <td>${r.branch}</td>
+      <td>${r.quarter}</td>
+      <td>${r.score_20}</td>
+      <td><span class="badge grade-${g.g}">${g.g}</span></td>
+      <td>${r.evaluator}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" class="center small">ยังไม่มีข้อมูล</td></tr>';
+
+  app.innerHTML = `
+    <div class="card">
+      <h2>Dashboard ผลประเมิน</h2>
+      <div class="filters">
+        <select id="fqSel"><option value="ALL">ทุกไตรมาส</option>${quarters.map(q=>`<option value="${q}" ${q===fq?'selected':''}>${q}</option>`).join('')}</select>
+        <select id="fbSel"><option value="ALL">ทุกสาขา</option>${branches.map(b=>`<option value="${b}" ${b===fb?'selected':''}>${b}</option>`).join('')}</select>
+      </div>
+      <div class="summarybox">
+        <div class="stat"><div class="v">${filtered.length}</div><div class="l">จำนวนที่ประเมินแล้ว</div></div>
+        <div class="stat"><div class="v">${avg.toFixed(2)}</div><div class="l">คะแนนเฉลี่ย /20</div></div>
+        <div class="stat"><div class="v" style="color:var(--E)">${critical}</div><div class="l">อยู่ในระดับวิกฤต (E)</div></div>
+        <div class="stat"><div class="v">${branches.length}</div><div class="l">สาขาที่มีข้อมูล</div></div>
+      </div>
+      <h3>คะแนนเฉลี่ยรายหมวด (จุดอ่อน-แข็งของทีม)</h3>
+      <table>${Object.entries(catAvg).map(([k,v])=>`<tr><td>${k}</td><td class="center">${v} /4</td></tr>`).join('')}</table>
+      <h3>รายชื่อ (เรียงจากคะแนนต่ำสุด)</h3>
+      <div style="max-height:340px;overflow:auto">
+        <table><thead><tr><th>ชื่อ</th><th>สาขา</th><th>ไตรมาส</th><th>คะแนน</th><th>เกรด</th><th>ผู้ประเมิน</th></tr></thead>
+        <tbody>${tableRows}</tbody></table>
+      </div>
+      <button class="btn-outline" style="width:100%;margin-top:14px" onclick="exportCsv()">Export เป็น CSV/Excel</button>
+      <button class="btn-outline" style="width:100%;margin-top:8px" onclick="goto('home')">กลับหน้าแรก</button>
+    </div>`;
+  document.getElementById('fqSel').onchange = e=>{ state._fq = e.target.value; render(); };
+  document.getElementById('fbSel').onchange = e=>{ state._fb = e.target.value; render(); };
+}
+
+function exportCsv(){
+  const rows = state.dashData.rows || [];
+  const header = state.dashData.header;
+  const csv = [header.join(',')].concat(
+    rows.map(r=> header.map(h=> `"${(r[h]??'').toString().replace(/"/g,'""')}"`).join(','))
+  ).join('\n');
+  const blob = new Blob(["\uFEFF"+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = '360_evaluation_export.csv'; a.click();
+}
+
+function goto(screen){ state.screen = screen; render(); }
+render();
+</script>
+</body>
+</html>
